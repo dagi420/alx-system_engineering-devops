@@ -1,21 +1,16 @@
 #!/usr/bin/env bash
-# Display information of domain and subdomain
-# shellcheck disable=SC2086
-info_Domain () {
-    A=$(dig $2.$1 | awk '/ANSWER SECTION:/{getline;print;}')
-    RE=$(echo $A | cut -d' ' -f 4)
-    IP=$(echo $A | cut -d' ' -f 5)
-    echo "The subdomain $2 is a $RE record and points to $IP"
+# print domains and subdomains
+
+print_domain_subdomain () {
+    dig "$1" | grep -A1 'ANSWER SECTION:' | sed -r "s/$1./$2/g" | awk -F" " ' NR==2 { print "The subdomain " $1 " is a " $4 " record and points to " $5 }'
 }
-if [ $# -lt 1 ]
+
+if [ "$#" -eq 2 ]
 then
-    echo "Usage: 0-world_wide_web DOMAIN SUBDOMAIN(optional)"
-elif [ $# -eq 1 ]
-then
-    info_Domain "$1" "www"
-    info_Domain "$1" "lb-01"
-    info_Domain "$1" "web-01"
-    info_Domain "$1" "web-02"
+    print_domain_subdomain "$2.$1" "$2"
 else
-    info_Domain "$1" "$2"
+    print_domain_subdomain "www.$1" "www"
+    print_domain_subdomain "lb-01.$1" "lb-01"
+    print_domain_subdomain "web-01.$1" "web-01"
+    print_domain_subdomain "web-02.$1" "web-02"
 fi
